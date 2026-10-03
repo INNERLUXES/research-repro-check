@@ -1,0 +1,7 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+title: "Survey study"
+authors:
+  - family-names: Okafor
+    given-names: Mira
+version: 1.0.0

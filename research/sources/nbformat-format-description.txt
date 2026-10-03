@@ -1,0 +1,148 @@
+Source: https://nbformat.readthedocs.io/en/latest/format_description.html
+
+## The Notebook file format
+
+The official Jupyter Notebook format is defined with
+this JSON schema,
+which is used by Jupyter tools to validate notebooks.
+
+This page contains a human-readable description of the notebook format.
+
+Note
+
+All metadata fields are optional.
+While the types and values of some metadata fields are defined,
+no metadata fields are required to be defined. Any metadata field
+may also be ignored.
+
+## Top-level structure
+
+At the highest level, a Jupyter notebook is a dictionary with a few keys:
+
+- metadata (dict)
+
+- nbformat (int)
+
+- nbformat_minor (int)
+
+- cells (list)
+
+{
+ "metadata": {
+ "kernel_info": {
+ # if kernel_info is defined, its name field is required.
+ "name": "the name of the kernel"
+ },
+ "language_info": {
+ # if language_info is defined, its name field is required.
+ "name": "the programming language of the kernel",
+ "version": "the version of the language",
+ "codemirror_mode": "The name of the codemirror mode to use [optional]",
+ },
+ },
+ "nbformat": 4,
+ "nbformat_minor": 0,
+ "cells": [
+ # list of cell dictionaries, see below
+ ],
+}
+
+Some fields, such as code input and text output, are characteristically multi-line strings.
+When these fields are written to disk, they may be written as a list of strings,
+which should be joined with '' when reading back into memory.
+In programmatic APIs for working with notebooks (Python, Javascript),
+these are always re-joined into the original multi-line string.
+If you intend to work with notebook files directly,
+you must allow multi-line string fields to be either a string or list of strings.
+
+## Code cells
+
+Code cells are the primary content of Jupyter notebooks.
+They contain source code in the language of the document's associated kernel,
+and a list of outputs associated with executing that code.
+They also have an execution_count, which must be an integer or null.
+
+{
+ "cell_type": "code",
+ "execution_count": 1, # integer or null
+ "metadata": {
+ "collapsed": True, # whether the output of the cell is collapsed
+ "scrolled": False, # any of true, false or "auto"
+ },
+ "source": "[some multi-line code]",
+ "outputs": [
+ {
+ # list of output dicts (described below)
+ "output_type": "stream",
+ # ...
+ }
+ ],
+}
+
+Changed in version nbformat: 4.0
+
+input was renamed to source, for consistency among cell types.
+
+Changed in version nbformat: 4.0
+
+prompt_number renamed to execution_count
+
+## Code cell outputs
+
+A code cell can have a variety of outputs (stream data or rich mime-type output).
+These correspond to messages produced as a result of executing the cell.
+
+All outputs have an output_type field,
+which is a string defining what type of output it is.
+
+## execute_result
+
+Results of executing a cell (as created by displayhook in Python)
+are stored in execute_result outputs.
+execute_result outputs are identical to display_data,
+adding only a execution_count field, which must be an integer.
+
+{
+ "output_type": "execute_result",
+ "execution_count": 42,
+ "data": {
+ "text/plain": "[multiline text data]",
+ "image/png": "[base64-encoded-multiline-png-data]",
+ "application/json": {
+ # JSON data is included as-is
+ "json": "data",
+ },
+ },
+ "metadata": {
+ "image/png": {
+ "width": 640,
+ "height": 480,
+ },
+ },
+}
+
+Changed in version nbformat: 4.0
+
+pyout renamed to execute_result
+
+Changed in version nbformat: 4.0
+
+prompt_number renamed to execution_count
+
+## error
+
+Failed execution may show an error:
+
+{
+ 'output_type': 'error',
+ 'ename' : str, # Exception name, as a string
+ 'evalue' : str, # Exception value, as a string
+
+ # The traceback will contain a list of frames,
+ # represented each as a string.
+ 'traceback' : list,
+}
+
+Changed in version nbformat: 4.0
+
+pyerr renamed to error

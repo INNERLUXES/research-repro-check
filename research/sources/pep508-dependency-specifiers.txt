@@ -1,0 +1,174 @@
+Source: https://packaging.python.org/en/latest/specifications/dependency-specifiers/
+
+## Dependency specifiers
+
+This document defines the format used to specify dependencies on other projects.
+The language defined is a compact line based format which was adapted from the
+format originally used in pip requirements files.
+
+The job of a dependency is to enable tools like pip [1] to find the right
+package to install. Sometimes this is very loose - just specifying a name, and
+sometimes very specific - referring to a specific file to install. Sometimes
+dependencies are only relevant on one platform, or only some versions are
+acceptable, so the language permits describing all these cases.
+
+Whether tools should be strict or permissive in their processing of dependency
+specifiers is largely dependent on the role of the tool in the wider ecosystem:
+
+- publishing tools and index servers SHOULD be strict in their processing for
+new releases, encouraging the consistency of published specifiers to improve
+over time
+
+- locking and installation tools MAY be permissive in their processing, allowing
+consumption of older packages which may contain dependency specifiers that are
+arguably nonsensical
+
+## Specification
+
+## Examples
+
+All features of the language shown with a name based lookup:
+
+requests [security,tests] >= 2.8.1, == 2.8.* ; python_version < "3.7"
+
+A minimal URL based lookup:
+
+pip @ https://github.com/pypa/pip/archive/1.3.1.zip#sha1=da9234ee9982d4bbb3c72346a6de940a148ea686
+
+## Concepts
+
+A dependency specification always specifies a distribution name. It may
+include extras, which expand the dependencies of the named distribution to
+enable optional features. The version installed can be controlled using
+version limits, or giving the URL to a specific artifact to install. Finally
+the dependency can be made conditional using environment markers.
+
+## Grammar
+
+We first cover the grammar briefly and then drill into the semantics of each
+section later.
+
+A distribution specification is written in ASCII text. We use a parsley
+[2] grammar to provide a precise grammar. It is expected that the
+specification will be embedded into a larger system which offers framing such
+as comments, multiple line support via continuations, or other such features.
+
+The full grammar including annotations to build a useful parse tree is
+included at the end of this document.
+
+Versions may be specified according to the rules of the
+Version specifier specification. (Note:
+URI is defined in std-66):
+
+version_cmp = wsp* '<=' | '<' | '!=' | '===' | '==' | '>=' | '>' | '~='
+version = wsp* ( letterOrDigit | '-' | '_' | '.' | '*' | '+' | '!' )+
+version_one = version_cmp version wsp*
+version_many = version_one (',' version_one)* (',' wsp*)?
+versionspec = ( '(' version_many ')' ) | version_many
+urlspec = '@' wsp* <URI_reference>
+
+Environment markers allow making a specification only take effect in some
+environments:
+
+marker_op = version_cmp | (wsp+ 'in' wsp+) | (wsp+ 'not' wsp+ 'in' wsp+)
+python_str_c = (wsp | letter | digit | '(' | ')' | '.' | '{' | '}' |
+ '-' | '_' | '*' | '#' | ':' | ';' | ',' | '/' | '?' |
+ '[' | ']' | '!' | '~' | '`' | '@' | '$' | '%' | '^' |
+ '&' | '=' | '+' | '|' | '<' | '>' )
+dquote = '"'
+squote = '\\''
+python_str = (squote (python_str_c | dquote)* squote |
+ dquote (python_str_c | squote)* dquote)
+env_var = ('python_version' | 'python_full_version' |
+ 'os_name' | 'sys_platform' | 'platform_release' |
+ 'platform_system' | 'platform_version' |
+ 'platform_machine' | 'platform_python_implementation' |
+ 'implementation_name' | 'implementation_version' |
+ 'extra' | 'extras' | 'dependency_groups' # ONLY when defined by a containing layer
+ )
+marker_var = wsp* (env_var | python_str)
+marker_expr = marker_var marker_op marker_var
+ | wsp* '(' marker wsp* ')'
+marker_and = marker_expr wsp* 'and' marker_expr
+ | marker_expr
+marker_or = marker_and wsp* 'or' marker_and
+ | marker_and
+marker = marker_or
+quoted_marker = ';' wsp* marker
+
+Optional components of a distribution may be specified using the extras
+field:
+
+identifier_end = letterOrDigit | (('-' | '_' | '.' )* letterOrDigit)
+identifier = letterOrDigit identifier_end*
+name = identifier
+extras_list = identifier (wsp* ',' wsp* identifier)*
+extras = '[' wsp* extras_list? wsp* ']'
+
+Giving us a rule for name based requirements:
+
+name_req = name wsp* extras? wsp* versionspec? wsp* quoted_marker?
+
+And a rule for direct reference specifications:
+
+url_req = name wsp* extras? wsp* urlspec (wsp+ quoted_marker?)?
+
+Leading to the unified rule that can specify a dependency.:
+
+specification = wsp* ( url_req | name_req ) wsp*
+
+## Whitespace
+
+Non line-breaking whitespace is mostly optional with no semantic meaning. The
+sole exceptions are detecting the end of a URL requirement and inside user
+supplied constants in environment markers.
+
+## Names
+
+Distribution names are defined in the Core metadata.
+Names act as the primary identifier for distributions. They are present in all
+dependency specifications, and are sufficient to be a specification on their
+own.
+
+Valid distribution names are defined in the name format specification.
+
+## Extras
+
+An extra is an optional part of a distribution. Distributions can specify as
+many extras as they wish, and each extra results in the declaration of
+additional dependencies of the distribution when the extra is used in a
+dependency specification. For instance:
+
+requests[security,tests]
+
+Extras union in the dependencies they define with the dependencies of the
+distribution they are attached to. The example above would result in requests
+being installed, and requests own dependencies, and also any dependencies that
+are listed in the "security" extra of requests.
+
+If multiple extras are listed, all the dependencies are unioned together.
+
+Restrictions on names for extras are defined in the
+Core metadata specification. Publication
+tools SHOULD enforce these restrictions in dependency specifiers, while locking
+and installation tools MAY normalize invalid extra names in order to accept
+published metadata using core metadata versions prior to 2.3.
+
+## Environment Markers
+
+Environment markers allow a dependency specification to provide a rule that
+describes when the dependency should be used. For instance, consider a package
+that needs pywin32 when running on Windows. This can be expressed as:
+
+pywin32; sys_platform == "win32"
+
+A marker expression evaluates to either True or False for a given deployment
+environment. When it evaluates to False, the dependency should be ignored.
+
+The marker language is inspired by Python itself, chosen for the ability to
+safely evaluate it without running arbitrary code that could become a security
+vulnerability.
+
+Markers were first defined in PEP 345, formally specified in PEP 508,
+then subsequently amended over time (amendments since PEP 508 are recorded
+at the end of this specification).
