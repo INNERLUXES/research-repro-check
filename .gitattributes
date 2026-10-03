@@ -1,0 +1,6 @@
+* text=auto eol=lf
+# The example studies are kept byte for byte as written, so a test can read them with LF and with CRLF line ends.
+examples/messy-study/** -text
+examples/clean-study/** -text
+# The CSV report uses CRLF line ends, as RFC 4180 says; keep them as written.
+examples/output/*.csv -text

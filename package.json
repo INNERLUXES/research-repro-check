@@ -1,0 +1,50 @@
+{
+  "name": "research-repro-check",
+  "version": "1.0.0",
+  "description": "Read the folder of a research study or prototype (Python and R scripts, Jupyter notebooks, requirements files, the README) and report what stops someone else from re-running the work and getting the same result: no file that pins the environment, unpinned requirements, notebooks run out of order or saved with errors, data files that are not there, absolute paths, random numbers with no seed, keys in the code, and a missing README, license or citation file. Each finding has its file and line and quotes the page it rests on. Never runs the code, no dependencies.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "bin": {
+    "research-repro-check": "bin/research-repro-check.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "docs",
+    "examples",
+    "research",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "test:coverage": "node --test --experimental-test-coverage \"test/*.test.js\"",
+    "check": "node tools/check.mjs",
+    "example": "node tools/example.mjs"
+  },
+  "keywords": [
+    "reproducibility",
+    "research-software",
+    "jupyter",
+    "notebook",
+    "requirements",
+    "pep-508",
+    "open-science",
+    "citation-cff",
+    "data-science",
+    "cli"
+  ],
+  "author": "INNERLUXES <info@innerluxes.dev>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/INNERLUXES/research-repro-check.git"
+  },
+  "homepage": "https://innerluxes.dev/software-development/research-and-development"
+}
