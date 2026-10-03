@@ -1,0 +1,24 @@
+research-repro-check: examples/clean-study
+folder: 8 files in 2 folders, 5 read, 0 not read, 0 links not followed, 0 folders skipped
+code: 1 notebook, 1 Python script, 0 R scripts, 0 JavaScript files; languages: Python
+environment: requirements.txt; lock files: none
+limits: outputs over 100 KB per cell
+areas:
+  Folder          info  summary x1
+  Environment     pass  no finding
+  Notebooks       pass  no finding
+  Data and paths  pass  no finding
+  Randomness      pass  no finding
+  Secrets         pass  no finding
+findings: 0 error, 0 warning, 1 info
+
+Folder (1 finding)
+
+  INFO     summary  examples/clean-study folder
+           Read 5 of 8 files in 2 folders: 1 notebook (4 code cells), 1 Python script, 0 R scripts. Languages: Python. Dependencies: requirements.txt 4 requirements (4 pinned). The code reads 3 relative data paths; random numbers are drawn on 1 line and a seed is set on 2 lines.
+           basis: "At The Turing Way, we define reproducible research as work that can be independently recreated from the same data and the same code that the original team used." (Table of Definitions for Reproducibility, https://book.the-turing-way.org/reproducible-research/overview/overview-definitions/)
+           fix: Nothing to fix; this is what the tool read. A clean report means none of the checks found anything, not that the result reproduces.
+
+note: 1 data path that the code reads is not in the folder but is named in a README or data document, so it was not reported: data/raw/responses_v2.csv (README.md)
+
+GATE: PASS (--fail-on warning)
